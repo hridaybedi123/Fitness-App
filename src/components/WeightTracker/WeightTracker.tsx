@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useData } from '../../context/DataContext';
 import { format, parseISO } from 'date-fns';
 import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
@@ -8,7 +8,7 @@ export default function WeightTracker() {
   const { weights, addWeightEntry, updateWeightEntry, deleteWeightEntry } = useData();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  
+
   const [formData, setFormData] = useState({
     date: format(new Date(), 'yyyy-MM-dd'),
     weight: '',
@@ -223,9 +223,8 @@ export default function WeightTracker() {
                           <span className="font-medium">{entry.weight.toFixed(1)}</span>
                         )}
                       </td>
-                      <td className={`px-6 py-4 text-right text-sm font-medium ${
-                        change < 0 ? 'text-green-500' : change > 0 ? 'text-red-500' : 'text-gray-400'
-                      }`}>
+                      <td className={`px-6 py-4 text-right text-sm font-medium ${change < 0 ? 'text-green-500' : change > 0 ? 'text-red-500' : 'text-gray-400'
+                        }`}>
                         {prevEntry ? `${change > 0 ? '+' : ''}${change.toFixed(1)}` : '-'}
                       </td>
                       <td className="px-6 py-4 text-right">

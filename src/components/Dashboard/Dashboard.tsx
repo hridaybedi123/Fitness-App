@@ -12,25 +12,9 @@ export default function Dashboard() {
 
   const [weightDate, setWeightDate] = React.useState(new Date());
 
-  // Get last 30 days of data
-  const last30Days = Array.from({ length: 30 }, (_, i) => {
-    const date = subDays(new Date(), 29 - i);
-    return format(date, 'yyyy-MM-dd');
-  });
 
-  // Calculate calorie trends
-  const calorieChartData = last30Days.map(day => {
-    const entry = calories.find(c => c.day === day);
-    const net = entry ? (entry.intake || 0) - (entry.exercise || 0) : 0;
-    const deficit = entry && entry.target ? entry.target - net : 0;
 
-    return {
-      date: format(parseISO(day), 'MM/dd'),
-      net,
-      target: entry?.target || 0,
-      deficit,
-    };
-  });
+
 
   // Calculate weight trends for selected month
   const weightChartData = weights

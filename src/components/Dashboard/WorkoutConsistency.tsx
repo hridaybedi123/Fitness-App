@@ -8,7 +8,6 @@ import {
     addMonths,
     subMonths,
     isSameMonth,
-    parseISO,
     isSameDay,
     getDay
 } from 'date-fns';

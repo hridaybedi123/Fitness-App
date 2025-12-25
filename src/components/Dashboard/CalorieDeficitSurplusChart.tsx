@@ -8,8 +8,7 @@ import {
     addMonths,
     subMonths,
     isSameMonth,
-    parseISO,
-    isSameDay
+    parseISO
 } from 'date-fns';
 import {
     BarChart,

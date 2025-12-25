@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { User } from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
@@ -16,11 +16,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useLocalStorage<User | null>('fitness-tracker-user', null);
   const [loading, setLoading] = useState(false);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, _password: string) => {
     setLoading(true);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     // Mock authentication - in production this would validate against Firebase
     const mockUser: User = {
       uid: `user-${Date.now()}`,
@@ -30,11 +30,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, _password: string) => {
     setLoading(true);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     // Mock authentication
     const mockUser: User = {
       uid: `user-${Date.now()}`,

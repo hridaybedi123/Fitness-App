@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
 import SignIn from './components/Auth/SignIn';
@@ -27,7 +27,7 @@ function AppContent() {
             <h1 className="text-3xl font-bold">Modern Fitness Tracker</h1>
             <p className="text-gray-400 mt-2">Track your fitness journey</p>
           </div>
-          
+
           {authMode === 'signin' ? (
             <SignIn onToggleMode={() => setAuthMode('signup')} />
           ) : (
@@ -49,7 +49,7 @@ function AppContent() {
                 <Dumbbell className="w-8 h-8 text-blue-500" />
                 <h1 className="text-2xl font-bold">Fitness Tracker</h1>
               </div>
-              
+
               <div className="flex items-center gap-4">
                 <span className="text-gray-400 text-sm">{user.email}</span>
                 <button
@@ -77,11 +77,10 @@ function AppContent() {
                 <button
                   key={item.id}
                   onClick={() => setCurrentView(item.id as View)}
-                  className={`px-6 py-2 rounded-lg whitespace-nowrap transition-colors ${
-                    currentView === item.id
+                  className={`px-6 py-2 rounded-lg whitespace-nowrap transition-colors ${currentView === item.id
                       ? 'bg-blue-500 text-white'
                       : 'bg-dark-card hover:bg-dark-border text-gray-300'
-                  }`}
+                    }`}
                 >
                   {item.label}
                 </button>

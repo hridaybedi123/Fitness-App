@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useData } from '../../context/DataContext';
-import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
+import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { WorkoutType } from '../../types';
 import MonthlyStepsChart from './MonthlyStepsChart';
 
