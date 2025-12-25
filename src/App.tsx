@@ -7,7 +7,7 @@ import Dashboard from './components/Dashboard/Dashboard';
 import CalorieTracker from './components/CalorieTracker/CalorieTracker';
 import WorkoutLog from './components/WorkoutLog/WorkoutLog';
 import WeightTracker from './components/WeightTracker/WeightTracker';
-import { Dumbbell, LogOut } from 'lucide-react';
+import { Dumbbell, LogOut, Link } from 'lucide-react';
 
 type View = 'dashboard' | 'calories' | 'workouts' | 'weight';
 
@@ -52,6 +52,14 @@ function AppContent() {
 
               <div className="flex items-center gap-4">
                 <span className="text-gray-400 text-sm">{user.email}</span>
+                <a
+                  href="https://excel.cloud.microsoft/open/onedrive/?docId=1890B0744B158111%21sf0f359adbf164bfd95ed390198768a03&driveId=1890B0744B158111"
+                  className="flex items-center gap-2 px-4 py-2 bg-green-500/10 hover:bg-green-500/20 text-green-500 rounded-lg transition-colors"
+                  target="_blank"
+                >
+                  <Link className="w-4 h-4" />
+                  Web-Link
+                </a>
                 <button
                   onClick={signOut}
                   className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors"
@@ -78,8 +86,8 @@ function AppContent() {
                   key={item.id}
                   onClick={() => setCurrentView(item.id as View)}
                   className={`px-6 py-2 rounded-lg whitespace-nowrap transition-colors ${currentView === item.id
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-dark-card hover:bg-dark-border text-gray-300'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-dark-card hover:bg-dark-border text-gray-300'
                     }`}
                 >
                   {item.label}
