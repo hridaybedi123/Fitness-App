@@ -171,22 +171,40 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     console.log('Adding workout:', date, entry);
     setWorkouts(prev => ({ ...prev, [date]: { ...entry, type: entry.type as any } }));
 
-    // Check if exists to decide upsert or insert? Supabase 'upsert' works best
-    const { data: upsertData, error } = await supabase
+    // Manual Check-then-Write (more robust than upsert if constraints are tricky)
+    const { data: existing } = await supabase
       .from('workouts')
-      .upsert({
-        date,
-        type: entry.type,
-        notes: entry.notes,
-        user_id: user.uid
-      }, { onConflict: 'date, user_id' })
-      .select();
+      .select('id')
+      .eq('date', date)
+      .eq('user_id', user.uid)
+      .single();
+
+    let error;
+
+    if (existing) {
+      // Update existing
+      const { error: updateError } = await supabase
+        .from('workouts')
+        .update({ type: entry.type, notes: entry.notes })
+        .eq('id', existing.id);
+      error = updateError;
+    } else {
+      // Insert new
+      const { error: insertError } = await supabase
+        .from('workouts')
+        .insert([{
+          date,
+          type: entry.type,
+          notes: entry.notes,
+          user_id: user.uid
+        }]);
+      error = insertError;
+    }
 
     if (error) {
-      console.error('Error saving workout (Supabase):', error);
-      console.error('If error is 409 or constraint related, you may need a unique constraint on (date, user_id)');
+      console.error('Error saving workout:', error);
     } else {
-      console.log('Workout saved successfully:', upsertData);
+      console.log('Workout saved successfully');
     }
   };
 
