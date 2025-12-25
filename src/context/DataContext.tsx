@@ -1,6 +1,7 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { CalorieEntry, WorkoutData, WeightEntry } from '../types';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { supabase } from '../supabase';
+import { useAuth } from './AuthContext';
 
 interface DataContextType {
   calories: CalorieEntry[];
@@ -21,72 +22,246 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
-  const [calories, setCalories] = useLocalStorage<CalorieEntry[]>('fitness-tracker-calories', []);
-  const [workouts, setWorkouts] = useLocalStorage<WorkoutData>('fitness-tracker-workouts', {});
-  const [weights, setWeights] = useLocalStorage<WeightEntry[]>('fitness-tracker-weights', []);
+  const [calories, setCalories] = useState<CalorieEntry[]>([]);
+  const [workouts, setWorkouts] = useState<WorkoutData>({});
+  const [weights, setWeights] = useState<WeightEntry[]>([]);
+  const { user } = useAuth(); // We need the user ID for database queries
 
-  const addCalorieEntry = (entry: Omit<CalorieEntry, 'id'>) => {
-    const newEntry: CalorieEntry = {
-      ...entry,
-      id: `cal-${Date.now()}`,
+  // Fetch initial data when user logs in
+  useEffect(() => {
+    if (!user) {
+      setCalories([]);
+      setWorkouts({});
+      setWeights([]);
+      return;
+    }
+
+    const fetchData = async () => {
+      // Fetch Calories
+      const { data: calData } = await supabase
+        .from('calories')
+        .select('*')
+        .order('day', { ascending: false });
+
+      if (calData) setCalories(calData);
+
+      // Fetch Workouts
+      const { data: workoutData } = await supabase
+        .from('workouts')
+        .select('*');
+
+      if (workoutData) {
+        // Convert array of rows back to object map: { date: { type, notes } }
+        const workoutMap: WorkoutData = {};
+        workoutData.forEach((w: any) => {
+          workoutMap[w.date] = { type: w.type as any, notes: w.notes };
+        });
+        setWorkouts(workoutMap);
+      }
+
+      // Fetch Weights
+      const { data: weightData } = await supabase
+        .from('weights')
+        .select('*')
+        .order('date', { ascending: true });
+
+      if (weightData) setWeights(weightData);
     };
-    setCalories([...calories, newEntry]);
+
+    fetchData();
+  }, [user]);
+
+  const addCalorieEntry = async (entry: Omit<CalorieEntry, 'id'>) => {
+    if (!user) return;
+
+    // Optimistic UI update
+    const tempId = `temp-${Date.now()}`;
+    const newEntry = { ...entry, id: tempId, user_id: user.uid };
+    setCalories(prev => [newEntry, ...prev]);
+
+    const { data, error } = await supabase
+      .from('calories')
+      .insert([{
+        day: entry.day,
+        target: entry.target,
+        exercise: entry.exercise,
+        intake: entry.intake,
+        steps: entry.steps,
+        user_id: user.uid
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding calorie entry:', error);
+      // Revert optimistic update
+      setCalories(prev => prev.filter(c => c.id !== tempId));
+    } else if (data) {
+      // Replace temp ID with real ID
+      setCalories(prev => prev.map(c => c.id === tempId ? data : c));
+    }
   };
 
-  const updateCalorieEntry = (id: string, updates: Partial<CalorieEntry>) => {
-    setCalories(calories.map(entry =>
-      entry.id === id ? { ...entry, ...updates } : entry
-    ));
+  const updateCalorieEntry = async (id: string, updates: Partial<CalorieEntry>) => {
+    if (!user) return;
+
+    setCalories(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+
+    const { error } = await supabase
+      .from('calories')
+      .update({
+        target: updates.target,
+        exercise: updates.exercise,
+        intake: updates.intake,
+        steps: updates.steps,
+      })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating calorie entry:', error);
+      // Ideally fetch data again to revert, or handle error UI
+    }
   };
 
-  const deleteCalorieEntry = (id: string) => {
-    setCalories(calories.filter(entry => entry.id !== id));
+  const deleteCalorieEntry = async (id: string) => {
+    if (!user) return;
+
+    const original = calories;
+    setCalories(prev => prev.filter(c => c.id !== id));
+
+    const { error } = await supabase
+      .from('calories')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting calorie entry:', error);
+      setCalories(original);
+    }
   };
 
-  const importCalorieEntries = (newEntries: Omit<CalorieEntry, 'id'>[]) => {
-    const timestamp = Date.now();
-    const entriesWithIds = newEntries.map((entry, index) => ({
-      ...entry,
-      id: `cal-${timestamp}-${index}`,
+  const importCalorieEntries = async (newEntries: Omit<CalorieEntry, 'id'>[]) => {
+    if (!user) return;
+
+    const entriesWithUser = newEntries.map(e => ({
+      day: e.day,
+      target: e.target,
+      exercise: e.exercise,
+      intake: e.intake,
+      steps: e.steps,
+      user_id: user.uid
     }));
-    setCalories([...calories, ...entriesWithIds]);
+
+    const { data, error } = await supabase
+      .from('calories')
+      .insert(entriesWithUser)
+      .select();
+
+    if (error) {
+      console.error('Error importing:', error);
+      alert('Import failed');
+    } else if (data) {
+      setCalories(prev => [...prev, ...data]);
+    }
   };
 
-  const addWorkoutEntry = (date: string, entry: { type: string; notes: string }) => {
-    setWorkouts({
-      ...workouts,
-      [date]: entry as any,
-    });
+  const addWorkoutEntry = async (date: string, entry: { type: string; notes: string }) => {
+    if (!user) return;
+
+    setWorkouts(prev => ({ ...prev, [date]: { ...entry, type: entry.type as any } }));
+
+    // Check if exists to decide upsert or insert? Supabase 'upsert' works best
+    const { error } = await supabase
+      .from('workouts')
+      .upsert({
+        date,
+        type: entry.type,
+        notes: entry.notes,
+        user_id: user.uid
+      }, { onConflict: 'date, user_id' }); // Assuming unique constraint on (date, user_id)
+
+    if (error) {
+      console.error('Error saving workout:', error);
+    }
   };
 
-  const deleteWorkoutEntry = (date: string) => {
+  const deleteWorkoutEntry = async (date: string) => {
+    if (!user) return;
+
     const newWorkouts = { ...workouts };
     delete newWorkouts[date];
     setWorkouts(newWorkouts);
+
+    const { error } = await supabase
+      .from('workouts')
+      .delete()
+      .eq('date', date)
+      .eq('user_id', user.uid); // Safety check
+
+    if (error) console.error('Error deleting workout:', error);
   };
 
-  const addWeightEntry = (entry: Omit<WeightEntry, 'id'>) => {
-    const newEntry: WeightEntry = {
-      ...entry,
-      id: `weight-${Date.now()}`,
-    };
-    setWeights([...weights, newEntry]);
+  const addWeightEntry = async (entry: Omit<WeightEntry, 'id'>) => {
+    if (!user) return;
+
+    const tempId = `temp-${Date.now()}`;
+    setWeights(prev => [...prev, { ...entry, id: tempId }]);
+
+    const { data, error } = await supabase
+      .from('weights')
+      .insert([{
+        date: entry.date,
+        weight: entry.weight,
+        user_id: user.uid
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding weight:', error);
+      setWeights(prev => prev.filter(w => w.id !== tempId));
+    } else if (data) {
+      setWeights(prev => prev.map(w => w.id === tempId ? data : w));
+    }
   };
 
-  const updateWeightEntry = (id: string, updates: Partial<WeightEntry>) => {
-    setWeights(weights.map(entry =>
-      entry.id === id ? { ...entry, ...updates } : entry
-    ));
+  const updateWeightEntry = async (id: string, updates: Partial<WeightEntry>) => {
+    if (!user) return;
+
+    setWeights(prev => prev.map(w => w.id === id ? { ...w, ...updates } : w));
+
+    const { error } = await supabase
+      .from('weights')
+      .update({ weight: updates.weight, date: updates.date }) // only fields needed
+      .eq('id', id);
+
+    if (error) console.error('Error updating weight:', error);
   };
 
-  const deleteWeightEntry = (id: string) => {
-    setWeights(weights.filter(entry => entry.id !== id));
+  const deleteWeightEntry = async (id: string) => {
+    if (!user) return;
+    setWeights(prev => prev.filter(w => w.id !== id));
+
+    const { error } = await supabase
+      .from('weights')
+      .delete()
+      .eq('id', id);
+
+    if (error) console.error('Error deleting weight:', error);
   };
 
-  const clearAllData = () => {
+  const clearAllData = async () => {
+    if (!user) return;
+
+    // Clear UI
     setCalories([]);
     setWorkouts({});
     setWeights([]);
+
+    // Clear DB - 3 delete calls
+    await supabase.from('calories').delete().neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all rows
+    await supabase.from('workouts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('weights').delete().neq('id', '00000000-0000-0000-0000-000000000000');
   };
 
   return (

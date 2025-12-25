@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { supabase } from '../supabase';
 
 interface AuthContextType {
   user: User | null;
@@ -13,51 +13,59 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useLocalStorage<User | null>('fitness-tracker-user', null);
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const signIn = async (email: string, _password: string) => {
+  useEffect(() => {
+    // Check active sessions and sets the user
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ? { uid: session.user.id, email: session.user.email || '' } : null);
+      setLoading(false);
+    });
+
+    // Listen for changes on auth state (sign in, sign out, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ? { uid: session.user.id, email: session.user.email || '' } : null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const signIn = async (email: string, password: string) => {
     setLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Mock authentication - in production this would validate against Firebase
-    const mockUser: User = {
-      uid: `user-${Date.now()}`,
-      email: email,
-    };
-    setUser(mockUser);
-    setLoading(false);
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) {
+      setLoading(false); // Make sure to stop loading on error
+      throw error;
+    }
+    // setLoading(false) is handled by onAuthStateChange
   };
 
-  const signUp = async (email: string, _password: string) => {
+  const signUp = async (email: string, password: string) => {
     setLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Mock authentication
-    const mockUser: User = {
-      uid: `user-${Date.now()}`,
-      email: email,
-    };
-    setUser(mockUser);
-    setLoading(false);
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+    if (error) {
+      setLoading(false);
+      throw error;
+    }
   };
 
   const signOut = async () => {
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 300));
-    setUser(null);
-    // Clear all data on sign out
-    localStorage.removeItem('fitness-tracker-calories');
-    localStorage.removeItem('fitness-tracker-workouts');
-    localStorage.removeItem('fitness-tracker-weights');
-    setLoading(false);
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   };
 
   return (
     <AuthContext.Provider value={{ user, signIn, signUp, signOut, loading }}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 }
