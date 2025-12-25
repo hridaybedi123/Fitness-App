@@ -39,7 +39,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const fetchData = async () => {
       // Fetch Calories
       const { data: calData } = await supabase
-        .from('calories')
+        .from('Calories')
         .select('*')
         .order('day', { ascending: false });
 
@@ -61,7 +61,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
       // Fetch Weights
       const { data: weightData } = await supabase
-        .from('weights')
+        .from('Weights')
         .select('*')
         .order('date', { ascending: true });
 
@@ -80,7 +80,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setCalories(prev => [newEntry, ...prev]);
 
     const { data, error } = await supabase
-      .from('calories')
+      .from('Calories')
       .insert([{
         day: entry.day,
         target: entry.target,
@@ -108,7 +108,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setCalories(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
 
     const { error } = await supabase
-      .from('calories')
+      .from('Calories')
       .update({
         target: updates.target,
         exercise: updates.exercise,
@@ -130,7 +130,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setCalories(prev => prev.filter(c => c.id !== id));
 
     const { error } = await supabase
-      .from('calories')
+      .from('Calories')
       .delete()
       .eq('id', id);
 
@@ -153,7 +153,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }));
 
     const { data, error } = await supabase
-      .from('calories')
+      .from('Calories')
       .insert(entriesWithUser)
       .select();
 
@@ -208,7 +208,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setWeights(prev => [...prev, { ...entry, id: tempId }]);
 
     const { data, error } = await supabase
-      .from('weights')
+      .from('Weights')
       .insert([{
         date: entry.date,
         weight: entry.weight,
@@ -231,7 +231,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setWeights(prev => prev.map(w => w.id === id ? { ...w, ...updates } : w));
 
     const { error } = await supabase
-      .from('weights')
+      .from('Weights')
       .update({ weight: updates.weight, date: updates.date }) // only fields needed
       .eq('id', id);
 
@@ -243,7 +243,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setWeights(prev => prev.filter(w => w.id !== id));
 
     const { error } = await supabase
-      .from('weights')
+      .from('Weights')
       .delete()
       .eq('id', id);
 
@@ -259,9 +259,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setWeights([]);
 
     // Clear DB - 3 delete calls
-    await supabase.from('calories').delete().neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all rows
+    await supabase.from('Calories').delete().neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all rows
     await supabase.from('workouts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-    await supabase.from('weights').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('Weights').delete().neq('id', '00000000-0000-0000-0000-000000000000');
   };
 
   return (
