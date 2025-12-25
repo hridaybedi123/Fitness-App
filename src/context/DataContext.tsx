@@ -172,12 +172,20 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setWorkouts(prev => ({ ...prev, [date]: { ...entry, type: entry.type as any } }));
 
     // Manual Check-then-Write (more robust than upsert if constraints are tricky)
-    const { data: existing } = await supabase
+    console.log(`Checking for existing workout on date: "${date}" for user: ${user.uid}`);
+
+    const { data: existing, error: selectError } = await supabase
       .from('workouts')
       .select('id')
       .eq('date', date)
       .eq('user_id', user.uid)
-      .single();
+      .maybeSingle(); // Use maybeSingle to avoid error on 0 rows
+
+    if (selectError) {
+      console.error('Error checking existence:', selectError);
+    } else {
+      console.log('Existing record?', existing);
+    }
 
     let error;
 
