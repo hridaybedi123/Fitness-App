@@ -277,71 +277,74 @@ export default function CalorieTracker() {
       {showAddForm && (
         <div className="glass rounded-xl p-6">
           <h3 className="text-xl font-bold mb-4">New Entry</h3>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Date</label>
-              <input
-                type="date"
-                value={formData.day}
-                onChange={(e) => setFormData({ ...formData, day: e.target.value })}
-                className="w-full px-4 py-2 bg-dark-card border border-dark-border rounded-lg focus:outline-none focus:border-blue-500"
-              />
+          <form onSubmit={(e) => { e.preventDefault(); handleAdd(); }}>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Date</label>
+                <input
+                  type="date"
+                  value={formData.day}
+                  onChange={(e) => setFormData({ ...formData, day: e.target.value })}
+                  className="w-full px-4 py-2 bg-dark-card border border-dark-border rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Target (kcal)</label>
+                <input
+                  type="number"
+                  value={formData.target}
+                  onChange={(e) => setFormData({ ...formData, target: e.target.value })}
+                  placeholder="2000"
+                  className="w-full px-4 py-2 bg-dark-card border border-dark-border rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Exercise (kcal)</label>
+                <input
+                  type="number"
+                  value={formData.exercise}
+                  onChange={(e) => setFormData({ ...formData, exercise: e.target.value })}
+                  placeholder="300"
+                  className="w-full px-4 py-2 bg-dark-card border border-dark-border rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Intake (kcal)</label>
+                <input
+                  type="number"
+                  value={formData.intake}
+                  onChange={(e) => setFormData({ ...formData, intake: e.target.value })}
+                  placeholder="1800"
+                  className="w-full px-4 py-2 bg-dark-card border border-dark-border rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Steps</label>
+                <input
+                  type="number"
+                  value={formData.steps}
+                  onChange={(e) => setFormData({ ...formData, steps: e.target.value })}
+                  placeholder="10000"
+                  className="w-full px-4 py-2 bg-dark-card border border-dark-border rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Target (kcal)</label>
-              <input
-                type="number"
-                value={formData.target}
-                onChange={(e) => setFormData({ ...formData, target: e.target.value })}
-                placeholder="2000"
-                className="w-full px-4 py-2 bg-dark-card border border-dark-border rounded-lg focus:outline-none focus:border-blue-500"
-              />
+            <div className="flex gap-2 mt-4">
+              <button
+                type="submit"
+                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+              >
+                Add Entry
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAddForm(false)}
+                className="px-4 py-2 bg-dark-card hover:bg-dark-border text-gray-300 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Exercise (kcal)</label>
-              <input
-                type="number"
-                value={formData.exercise}
-                onChange={(e) => setFormData({ ...formData, exercise: e.target.value })}
-                placeholder="300"
-                className="w-full px-4 py-2 bg-dark-card border border-dark-border rounded-lg focus:outline-none focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Intake (kcal)</label>
-              <input
-                type="number"
-                value={formData.intake}
-                onChange={(e) => setFormData({ ...formData, intake: e.target.value })}
-                placeholder="1800"
-                className="w-full px-4 py-2 bg-dark-card border border-dark-border rounded-lg focus:outline-none focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Steps</label>
-              <input
-                type="number"
-                value={formData.steps}
-                onChange={(e) => setFormData({ ...formData, steps: e.target.value })}
-                placeholder="10000"
-                className="w-full px-4 py-2 bg-dark-card border border-dark-border rounded-lg focus:outline-none focus:border-blue-500"
-              />
-            </div>
-          </div>
-          <div className="flex gap-2 mt-4">
-            <button
-              onClick={handleAdd}
-              className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
-            >
-              Add Entry
-            </button>
-            <button
-              onClick={() => setShowAddForm(false)}
-              className="px-4 py-2 bg-dark-card hover:bg-dark-border text-gray-300 rounded-lg transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
+          </form>
         </div>
       )}
 
