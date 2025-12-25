@@ -12,10 +12,6 @@ export default function Dashboard() {
 
   const [weightDate, setWeightDate] = React.useState(new Date());
 
-
-
-
-
   // Calculate weight trends for selected month
   const weightChartData = weights
     .filter(w => {
