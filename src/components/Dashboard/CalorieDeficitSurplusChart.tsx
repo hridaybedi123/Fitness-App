@@ -172,8 +172,8 @@ export default function CalorieDeficitSurplusChart() {
                 <div className="flex items-center gap-2 border-l border-white/10 pl-6 ml-2">
                     <span className="text-gray-400">Net Month:</span>
                     <span className={`font-bold ${monthData.reduce((sum, day) => sum + day.balance, 0) >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
-                        {monthData.reduce((sum, day) => sum + day.balance, 0) < 0 ? 'Surplus of ' : 'Defecit of '}
-                        {monthData.reduce((sum, day) => Math.abs(sum) + day.balance, 0)}
+                        {monthData.reduce((sum, day) => sum + day.balance, 0) < 0 ? 'Surplus of ' : 'Deficit of '}
+                        {Math.abs(monthData.reduce((sum, day) => sum + day.balance, 0))}
                     </span>
                 </div>
             </div>
