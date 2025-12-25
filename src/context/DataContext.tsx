@@ -191,22 +191,28 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
     if (existing) {
       // Update existing
-      const { error: updateError } = await supabase
+      console.log(`DEBUG: Updating existing workout ID: ${existing.id}`);
+      const { error: updateError, data: updateResult } = await supabase
         .from('workouts')
         .update({ type: entry.type, notes: entry.notes })
-        .eq('id', existing.id);
+        .eq('id', existing.id)
+        .select();
       error = updateError;
+      console.log('DEBUG: Update Result:', updateResult, 'Error:', updateError);
     } else {
       // Insert new
-      const { error: insertError } = await supabase
+      console.log('DEBUG: Inserting NEW workout');
+      const { error: insertError, data: insertResult } = await supabase
         .from('workouts')
         .insert([{
           date,
           type: entry.type,
           notes: entry.notes,
           user_id: user.uid
-        }]);
+        }])
+        .select();
       error = insertError;
+      console.log('DEBUG: Insert Result:', insertResult, 'Error:', insertError);
     }
 
     if (error) {
