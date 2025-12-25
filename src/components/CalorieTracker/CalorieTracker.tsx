@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
-import { format, parseISO } from 'date-fns';
-import { Plus, Trash2, Edit2, Check, X, Upload, AlertTriangle } from 'lucide-react';
+import { format, parseISO, parse } from 'date-fns';
+import { Plus, Trash2, Edit2, Check, X, Upload, AlertTriangle, ArrowUp, ArrowDown } from 'lucide-react';
 
 export default function CalorieTracker() {
   const { calories, addCalorieEntry, updateCalorieEntry, deleteCalorieEntry, clearAllData, importCalorieEntries } = useData();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   const [formData, setFormData] = useState({
     day: format(new Date(), 'yyyy-MM-dd'),
@@ -25,6 +26,10 @@ export default function CalorieTracker() {
 
   const [showClearConfirm, setShowClearConfirm] = useState(0); // 0: none, 1: first confirm, 2: second confirm
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const toggleSort = () => {
+    setSortDirection(prev => prev === 'desc' ? 'asc' : 'desc');
+  };
 
   const handleAdd = () => {
     if (!formData.day) return;
@@ -81,7 +86,11 @@ export default function CalorieTracker() {
         return false;
       }
     })
-    .sort((a, b) => b.day.localeCompare(a.day));
+    .sort((a, b) => {
+      return sortDirection === 'desc'
+        ? b.day.localeCompare(a.day)
+        : a.day.localeCompare(b.day);
+    });
 
   const calculateNet = (entry: any) => {
     return (entry.intake || 0) - (entry.exercise || 0);
@@ -115,12 +124,56 @@ export default function CalorieTracker() {
                     const lines = text.split('\n');
                     const newEntries: any[] = [];
 
+                    // Determine format based on header
+                    const header = lines[0].toLowerCase();
+                    const isCustomFormat = header.includes('no.') && header.includes('day') && header.includes('plus/minus');
+
+                    let currentYear = new Date().getFullYear();
+                    let lastMonth = -1;
+
                     // Skip header
                     lines.slice(1).forEach(line => {
                       if (!line.trim()) return;
-                      const [day, target, exercise, intake, steps] = line.split(',');
 
-                      if (day && day.trim()) {
+                      let dayStr, target, exercise, intake, steps;
+
+                      if (isCustomFormat) {
+                        // Custom format: No., Day, Target, Exercise, Intake, Net, Plus/Minus, Steps
+                        // Columns indices: 0, 1, 2, 3, 4, 5, 6, 7
+                        const cols = line.split(',').map(s => s.trim());
+                        if (cols.length < 8) return;
+
+                        // Parse date: 24-Dec -> yyyy-MM-dd
+                        try {
+                          const parsedDate = parse(cols[1], 'dd-MMM', new Date(currentYear, 0, 1));
+                          const month = parsedDate.getMonth();
+
+                          // Handle year rollover (e.g. Dec -> Jan)
+                          if (lastMonth === 11 && month === 0) {
+                            currentYear++;
+                            parsedDate.setFullYear(currentYear);
+                          }
+                          // Handle case where we start in Jan but it's technically next year relative to current date context? 
+                          // For now, simpler rollover detection is safer assumes chronological order
+
+                          lastMonth = month;
+                          parsedDate.setFullYear(currentYear);
+                          dayStr = format(parsedDate, 'yyyy-MM-dd');
+                        } catch (err) {
+                          console.error('Date parse error', cols[1]);
+                          return;
+                        }
+
+                        target = cols[2];
+                        exercise = cols[3];
+                        intake = cols[4];
+                        steps = cols[7];
+                      } else {
+                        // Standard format: day, target, exercise, intake, steps
+                        [dayStr, target, exercise, intake, steps] = line.split(',');
+                      }
+
+                      if (dayStr && dayStr.trim()) {
                         const parsedTarget = target ? Number(target) : null;
                         const parsedExercise = exercise ? Number(exercise) : null;
                         const parsedIntake = intake ? Number(intake) : null;
@@ -135,7 +188,7 @@ export default function CalorieTracker() {
                         }
 
                         newEntries.push({
-                          day: day.trim(),
+                          day: dayStr.trim(),
                           target: parsedTarget,
                           exercise: parsedExercise,
                           intake: parsedIntake,
@@ -298,7 +351,19 @@ export default function CalorieTracker() {
           <table className="w-full">
             <thead className="bg-dark-card border-b border-dark-border">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-medium">Date</th>
+                <th
+                  className="px-6 py-4 text-left text-sm font-medium cursor-pointer hover:text-white transition-colors group"
+                  onClick={toggleSort}
+                >
+                  <div className="flex items-center gap-2">
+                    Date
+                    {sortDirection === 'desc' ? (
+                      <ArrowDown className="w-4 h-4 text-blue-500" />
+                    ) : (
+                      <ArrowUp className="w-4 h-4 text-blue-500" />
+                    )}
+                  </div>
+                </th>
                 <th className="px-6 py-4 text-right text-sm font-medium">Target</th>
                 <th className="px-6 py-4 text-right text-sm font-medium">Exercise</th>
                 <th className="px-6 py-4 text-right text-sm font-medium">Intake</th>
