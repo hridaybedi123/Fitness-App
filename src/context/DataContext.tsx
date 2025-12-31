@@ -17,6 +17,7 @@ interface DataContextType {
   deleteWeightEntry: (id: string) => void;
   clearAllData: () => void;
   importCalorieEntries: (entries: Omit<CalorieEntry, 'id'>[]) => void;
+  addOrUpdateSteps: (date: string, steps: number) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -87,6 +88,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         exercise: entry.exercise,
         intake: entry.intake,
         steps: entry.steps,
+        protein: entry.protein,
         user_id: user.uid
       }])
       .select()
@@ -114,6 +116,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         exercise: updates.exercise,
         intake: updates.intake,
         steps: updates.steps,
+        protein: updates.protein,
       })
       .eq('id', id);
 
@@ -149,6 +152,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       exercise: e.exercise,
       intake: e.intake,
       steps: e.steps,
+      protein: e.protein,
       user_id: user.uid
     }));
 
@@ -287,6 +291,27 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     if (error) console.error('Error deleting weight:', error);
   };
 
+  const addOrUpdateSteps = async (date: string, steps: number) => {
+    if (!user) return;
+
+    // Check if a calorie entry exists for this date
+    const existingEntry = calories.find(c => c.day === date);
+
+    if (existingEntry) {
+      // Update existing entry
+      await updateCalorieEntry(existingEntry.id, { steps });
+    } else {
+      // Create new entry with just steps
+      await addCalorieEntry({
+        day: date,
+        target: null,
+        exercise: null,
+        intake: null,
+        steps
+      });
+    }
+  };
+
   const clearAllData = async () => {
     if (!user) return;
 
@@ -317,6 +342,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         deleteWeightEntry,
         clearAllData,
         importCalorieEntries,
+        addOrUpdateSteps,
       }}
     >
       {children}

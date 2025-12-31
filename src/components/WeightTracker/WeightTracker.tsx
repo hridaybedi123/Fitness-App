@@ -174,9 +174,9 @@ export default function WeightTracker() {
 
       {/* Data Table */}
       <div className="glass rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-dark-card border-b border-dark-border">
+        <div className="overflow-x-auto max-h-[350px] overflow-y-auto">
+          <table className="w-full border-collapse">
+            <thead className="bg-dark-card border-b border-dark-border sticky top-0 z-10 shadow-sm">
               <tr>
                 <th className="px-6 py-4 text-left text-sm font-medium">Date</th>
                 <th className="px-6 py-4 text-right text-sm font-medium">Weight (lbs)</th>

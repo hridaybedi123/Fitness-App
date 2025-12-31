@@ -11,6 +11,7 @@ export default function CalorieTracker() {
     target: '',
     exercise: '',
     intake: '',
+    protein: '',
   });
 
   const [showClearConfirm, setShowClearConfirm] = useState(0); // 0: none, 1: first confirm, 2: second confirm
@@ -24,6 +25,7 @@ export default function CalorieTracker() {
       target: formData.target ? Number(formData.target) : null,
       exercise: formData.exercise ? Number(formData.exercise) : null,
       intake: formData.intake ? Number(formData.intake) : null,
+      protein: formData.protein ? Number(formData.protein) : null,
       steps: null, // Steps removed from form
     });
 
@@ -32,6 +34,7 @@ export default function CalorieTracker() {
       target: '',
       exercise: '',
       intake: '',
+      protein: '',
     });
   };
 
@@ -59,16 +62,16 @@ export default function CalorieTracker() {
   return (
     <div className="space-y-6">
       {/* Header - Hidden per reference design */}
-      
+
       {/* Add Daily Entry Form - Always Visible */}
       <div className="glass rounded-xl p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-2 h-8 bg-green-500 rounded-full"></div>
           <h3 className="text-xl font-bold">Add Daily Entry</h3>
         </div>
-        
+
         <form onSubmit={(e) => { e.preventDefault(); handleAdd(); }}>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Date</label>
               <div className="relative">
@@ -116,6 +119,19 @@ export default function CalorieTracker() {
                   value={formData.intake}
                   onChange={(e) => setFormData({ ...formData, intake: e.target.value })}
                   placeholder="0"
+                  className="w-full pl-10 pr-4 py-2 bg-dark-card border border-dark-border rounded-lg focus:outline-none focus:border-green-500"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Protein (g)</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">💪</span>
+                <input
+                  type="number"
+                  value={formData.protein}
+                  onChange={(e) => setFormData({ ...formData, protein: e.target.value })}
+                  placeholder="150"
                   className="w-full pl-10 pr-4 py-2 bg-dark-card border border-dark-border rounded-lg focus:outline-none focus:border-green-500"
                 />
               </div>
@@ -298,6 +314,7 @@ export default function CalorieTracker() {
                 <th className="px-6 py-4 text-right text-sm font-medium text-gray-400 uppercase tracking-wider">Target</th>
                 <th className="px-6 py-4 text-right text-sm font-medium text-gray-400 uppercase tracking-wider">Intake</th>
                 <th className="px-6 py-4 text-right text-sm font-medium text-gray-400 uppercase tracking-wider">Exercise</th>
+                <th className="px-6 py-4 text-right text-sm font-medium text-gray-400 uppercase tracking-wider">Protein</th>
                 <th className="px-6 py-4 text-right text-sm font-medium text-gray-400 uppercase tracking-wider">Net</th>
                 <th className="px-6 py-4 text-right text-sm font-medium text-gray-400 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-right text-sm font-medium text-gray-400 uppercase tracking-wider"></th>
@@ -306,7 +323,7 @@ export default function CalorieTracker() {
             <tbody>
               {sortedCalories.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                     No calorie entries yet. Add your first entry above.
                   </td>
                 </tr>
@@ -314,7 +331,7 @@ export default function CalorieTracker() {
                 sortedCalories.map((entry) => {
                   const deficit = calculateDeficit(entry);
                   const net = calculateNet(entry);
-                  
+
                   return (
                     <tr key={entry.id} className="border-b border-dark-border hover:bg-dark-card/50">
                       <td className="px-6 py-4 text-sm">
@@ -332,14 +349,20 @@ export default function CalorieTracker() {
                       <td className="px-6 py-4 text-right text-sm">{entry.target || '-'}</td>
                       <td className="px-6 py-4 text-right text-sm">{entry.intake || '-'}</td>
                       <td className="px-6 py-4 text-right text-sm">{entry.exercise || '-'}</td>
+                      <td className="px-6 py-4 text-right text-sm">
+                        {entry.protein ? (
+                          <span className="font-medium">{entry.protein}g</span>
+                        ) : (
+                          '-'
+                        )}
+                      </td>
                       <td className="px-6 py-4 text-right text-sm font-medium">{net}</td>
                       <td className="px-6 py-4 text-right">
                         {entry.target ? (
-                          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
-                            deficit > 0 
-                              ? 'bg-green-500/20 text-green-500' 
+                          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${deficit > 0
+                              ? 'bg-green-500/20 text-green-500'
                               : 'bg-red-500/20 text-red-500'
-                          }`}>
+                            }`}>
                             {deficit > 0 ? (
                               <>
                                 <TrendingDown className="w-3 h-3" />

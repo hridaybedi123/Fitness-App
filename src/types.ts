@@ -5,6 +5,7 @@ export interface CalorieEntry {
   exercise: number | null;
   intake: number | null;
   steps?: number | null;
+  protein?: number | null;
 }
 
 export type WorkoutType = 'Push' | 'Pull' | 'Legs' | 'Rest' | '';

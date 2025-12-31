@@ -6,12 +6,13 @@ import { WorkoutType } from '../../types';
 import MonthlyStepsChart from './MonthlyStepsChart';
 
 export default function WorkoutLog() {
-  const { workouts, addWorkoutEntry, deleteWorkoutEntry } = useData();
+  const { workouts, addWorkoutEntry, deleteWorkoutEntry, calories, addOrUpdateSteps } = useData();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     type: '' as WorkoutType,
     notes: '',
+    steps: '',
   });
 
   const monthStart = startOfMonth(currentMonth);
@@ -30,32 +31,38 @@ export default function WorkoutLog() {
     const dateStr = format(date, 'yyyy-MM-dd');
     setSelectedDate(dateStr);
     const existing = workouts[dateStr];
-    if (existing) {
-      setFormData({
-        type: existing.type,
-        notes: existing.notes,
-      });
-    } else {
-      setFormData({
-        type: '',
-        notes: '',
-      });
-    }
+    const calorieEntry = calories.find(c => c.day === dateStr);
+
+    setFormData({
+      type: existing?.type || '',
+      notes: existing?.notes || '',
+      steps: calorieEntry?.steps?.toString() || '',
+    });
   };
 
   const handleSave = () => {
     if (!selectedDate) return;
 
-    addWorkoutEntry(selectedDate, formData);
+    // Save workout entry
+    addWorkoutEntry(selectedDate, { type: formData.type, notes: formData.notes });
+
+    // Save steps if provided
+    if (formData.steps && formData.steps.trim() !== '') {
+      const stepsValue = parseInt(formData.steps, 10);
+      if (!isNaN(stepsValue) && stepsValue >= 0) {
+        addOrUpdateSteps(selectedDate, stepsValue);
+      }
+    }
+
     setSelectedDate(null);
-    setFormData({ type: '', notes: '' });
+    setFormData({ type: '', notes: '', steps: '' });
   };
 
   const handleDelete = () => {
     if (!selectedDate) return;
     deleteWorkoutEntry(selectedDate);
     setSelectedDate(null);
-    setFormData({ type: '', notes: '' });
+    setFormData({ type: '', notes: '', steps: '' });
   };
 
   const getWorkoutColor = (type: WorkoutType) => {
@@ -186,6 +193,18 @@ export default function WorkoutLog() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Daily Steps</label>
+                <input
+                  type="number"
+                  value={formData.steps}
+                  onChange={(e) => setFormData({ ...formData, steps: e.target.value })}
+                  className="w-full px-4 py-2 bg-dark-card border border-dark-border rounded-lg focus:outline-none focus:border-blue-500"
+                  placeholder="Enter daily steps (e.g., 10000)"
+                  min="0"
+                />
               </div>
 
               <div>
