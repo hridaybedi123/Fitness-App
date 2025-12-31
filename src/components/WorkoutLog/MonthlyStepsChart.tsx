@@ -124,7 +124,7 @@ export default function MonthlyStepsChart() {
                                 animationDuration={1500}
                                 animationEasing="ease-out"
                             >
-                                {chartData.map((entry, index) => (
+                                {chartData.map((_, index) => (
                                     <Cell
                                         key={`cell-${index}`}
                                         className="hover:filter hover:brightness-125 transition-all duration-300"
