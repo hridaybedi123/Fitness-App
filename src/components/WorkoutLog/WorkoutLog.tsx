@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useData } from '../../context/DataContext';
 import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Check } from 'lucide-react';
 import { WorkoutType } from '../../types';
 import MonthlyStepsChart from './MonthlyStepsChart';
 
@@ -161,18 +161,31 @@ export default function WorkoutLog() {
           {selectedDate ? (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Workout Type</label>
-                <select
-                  value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value as WorkoutType })}
-                  className="w-full px-4 py-2 bg-dark-card border border-dark-border rounded-lg focus:outline-none focus:border-blue-500"
-                >
-                  <option value="">Select type</option>
-                  <option value="Push">Push</option>
-                  <option value="Pull">Pull</option>
-                  <option value="Legs">Legs</option>
-                  <option value="Rest">Rest</option>
-                </select>
+                <label className="block text-sm font-medium mb-3">Workout Type</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {(['Push', 'Pull', 'Legs', 'Rest'] as WorkoutType[]).map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, type })}
+                      className={`relative py-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-2 group ${formData.type === type
+                        ? `${getWorkoutColor(type)} border-transparent text-white shadow-lg shadow-${type.toLowerCase()}-500/20 scale-105 z-10`
+                        : 'border-dark-border bg-dark-card/50 text-gray-400 hover:border-gray-600 hover:bg-dark-card'
+                        }`}
+                    >
+                      <div className={`w-3 h-3 rounded-full shadow-sm transition-colors ${formData.type === type ? 'bg-white' : getWorkoutColor(type)
+                        }`} />
+                      <span className={`text-sm font-bold tracking-wide uppercase ${formData.type === type ? 'text-white' : 'text-gray-400 group-hover:text-gray-300'
+                        }`}>{type}</span>
+
+                      {formData.type === type && (
+                        <div className="absolute top-2 right-2">
+                          <Check className="w-3 h-3 text-white" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div>
