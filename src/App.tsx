@@ -7,7 +7,7 @@ import Dashboard from './components/Dashboard/Dashboard';
 import CalorieTracker from './components/CalorieTracker/CalorieTracker';
 import WorkoutLog from './components/WorkoutLog/WorkoutLog';
 import WeightTracker from './components/WeightTracker/WeightTracker';
-import { Dumbbell, LogOut, Link } from 'lucide-react';
+import { LogOut, Link } from 'lucide-react';
 
 type View = 'dashboard' | 'calories' | 'workouts' | 'weight';
 
@@ -22,9 +22,9 @@ function AppContent() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
-              <Dumbbell className="w-12 h-12 text-blue-500" />
+              <img src="/tuff_svg.png" alt="Tuff Fitness Logo" className="w-32 h-32 object-contain" />
             </div>
-            <h1 className="text-3xl font-bold">Modern Fitness Tracker</h1>
+            <h1 className="text-3xl font-bold">Tuff Fitness</h1>
             <p className="text-gray-400 mt-2">Track your fitness journey</p>
           </div>
 
@@ -46,8 +46,8 @@ function AppContent() {
           <div className="max-w-7xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Dumbbell className="w-8 h-8 text-blue-500" />
-                <h1 className="text-2xl font-bold">Fitness Tracker</h1>
+                <img src="/tuff_svg.png" alt="Tuff Fitness Logo" className="w-12 h-12 object-contain" />
+                <h1 className="text-2xl font-bold">Tuff Fitness</h1>
               </div>
 
               <div className="flex items-center gap-4">
