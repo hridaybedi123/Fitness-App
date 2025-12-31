@@ -8,13 +8,14 @@ import {
     subMonths
 } from 'date-fns';
 import {
-    LineChart,
-    Line,
+    BarChart,
+    Bar,
     XAxis,
     YAxis,
     CartesianGrid,
     Tooltip,
-    ResponsiveContainer
+    ResponsiveContainer,
+    Cell
 } from 'recharts';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -89,29 +90,48 @@ export default function MonthlyStepsChart() {
             <div className="h-[300px] w-full">
                 {chartData.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: -20 }}>
+                        <BarChart data={chartData} margin={{ top: 10, right: 5, bottom: 5, left: -20 }}>
+                            <defs>
+                                <linearGradient id="stepGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#a855f7" stopOpacity={0.8} />
+                                    <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.3} />
+                                </linearGradient>
+                            </defs>
                             <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" vertical={false} />
                             <XAxis
                                 dataKey="date"
                                 stroke="#666"
                                 tick={{ fontSize: 12 }}
                                 interval="preserveStartEnd"
+                                axisLine={false}
+                                tickLine={false}
                             />
                             <YAxis
                                 stroke="#666"
                                 tick={{ fontSize: 12 }}
-                                domain={[0, 15000]}
+                                domain={[0, 'auto']}
+                                axisLine={false}
+                                tickLine={false}
                             />
-                            <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 2 }} />
-                            <Line
-                                type="monotone"
+                            <Tooltip
+                                content={<CustomTooltip />}
+                                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                            />
+                            <Bar
                                 dataKey="steps"
-                                stroke="#a855f7"
-                                strokeWidth={3}
-                                dot={{ fill: '#a855f7', r: 4, strokeWidth: 0 }}
-                                activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }}
-                            />
-                        </LineChart>
+                                fill="url(#stepGradient)"
+                                radius={[6, 6, 0, 0]}
+                                animationDuration={1500}
+                                animationEasing="ease-out"
+                            >
+                                {chartData.map((entry, index) => (
+                                    <Cell
+                                        key={`cell-${index}`}
+                                        className="hover:filter hover:brightness-125 transition-all duration-300"
+                                    />
+                                ))}
+                            </Bar>
+                        </BarChart>
                     </ResponsiveContainer>
                 ) : (
                     <div className="h-full flex items-center justify-center text-gray-500">
