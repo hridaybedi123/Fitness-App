@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
 import { format, parseISO, parse } from 'date-fns';
-import { Upload, Trash2, Calendar, Activity, Utensils, Check, TrendingDown, TrendingUp } from 'lucide-react';
+import { Upload, Trash2, Calendar, Activity, Utensils, Check, TrendingDown, TrendingUp, Pencil, X, Save } from 'lucide-react';
 
 export default function CalorieTracker() {
-  const { calories, addCalorieEntry, deleteCalorieEntry, clearAllData, importCalorieEntries } = useData();
+  const { calories, addCalorieEntry, updateCalorieEntry, deleteCalorieEntry, clearAllData, importCalorieEntries } = useData();
 
   const [formData, setFormData] = useState({
     day: format(new Date(), 'yyyy-MM-dd'),
@@ -15,6 +15,14 @@ export default function CalorieTracker() {
   });
 
   const [showClearConfirm, setShowClearConfirm] = useState(0); // 0: none, 1: first confirm, 2: second confirm
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    day: '',
+    target: '',
+    exercise: '',
+    intake: '',
+    protein: '',
+  });
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleAdd = () => {
@@ -36,6 +44,36 @@ export default function CalorieTracker() {
       intake: '',
       protein: '',
     });
+  };
+
+  const handleEdit = (entry: any) => {
+    setEditingId(entry.id);
+    setEditFormData({
+      day: entry.day,
+      target: entry.target?.toString() || '',
+      exercise: entry.exercise?.toString() || '',
+      intake: entry.intake?.toString() || '',
+      protein: entry.protein?.toString() || '',
+    });
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingId) return;
+
+    updateCalorieEntry(editingId, {
+      day: editFormData.day,
+      target: editFormData.target ? Number(editFormData.target) : null,
+      exercise: editFormData.exercise ? Number(editFormData.exercise) : null,
+      intake: editFormData.intake ? Number(editFormData.intake) : null,
+      protein: editFormData.protein ? Number(editFormData.protein) : null,
+      steps: null,
+    });
+
+    setEditingId(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
   };
 
   const sortedCalories = [...calories]
@@ -335,33 +373,90 @@ export default function CalorieTracker() {
                   return (
                     <tr key={entry.id} className="border-b border-dark-border hover:bg-dark-card/50">
                       <td className="px-6 py-4 text-sm">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-gray-500" />
-                          {(() => {
-                            try {
-                              return format(parseISO(entry.day), 'MMM dd, yyyy');
-                            } catch (e) {
-                              return 'Invalid Date';
-                            }
-                          })()}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-right text-sm">{entry.target || '-'}</td>
-                      <td className="px-6 py-4 text-right text-sm">{entry.intake || '-'}</td>
-                      <td className="px-6 py-4 text-right text-sm">{entry.exercise || '-'}</td>
-                      <td className="px-6 py-4 text-right text-sm">
-                        {entry.protein ? (
-                          <span className="font-medium">{entry.protein}g</span>
+                        {editingId === entry.id ? (
+                          <input
+                            type="date"
+                            value={editFormData.day}
+                            onChange={(e) => setEditFormData({ ...editFormData, day: e.target.value })}
+                            className="w-full bg-dark-card border border-dark-border rounded px-2 py-1 focus:outline-none focus:border-green-500"
+                          />
                         ) : (
-                          '-'
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-gray-500" />
+                            {(() => {
+                              try {
+                                return format(parseISO(entry.day), 'MMM dd, yyyy');
+                              } catch (e) {
+                                return 'Invalid Date';
+                              }
+                            })()}
+                          </div>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-right text-sm font-medium">{net}</td>
+                      <td className="px-6 py-4 text-right text-sm">
+                        {editingId === entry.id ? (
+                          <input
+                            type="number"
+                            value={editFormData.target}
+                            onChange={(e) => setEditFormData({ ...editFormData, target: e.target.value })}
+                            className="w-20 bg-dark-card border border-dark-border rounded px-2 py-1 text-right focus:outline-none focus:border-green-500"
+                          />
+                        ) : (
+                          entry.target || '-'
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right text-sm">
+                        {editingId === entry.id ? (
+                          <input
+                            type="number"
+                            value={editFormData.intake}
+                            onChange={(e) => setEditFormData({ ...editFormData, intake: e.target.value })}
+                            className="w-20 bg-dark-card border border-dark-border rounded px-2 py-1 text-right focus:outline-none focus:border-green-500"
+                          />
+                        ) : (
+                          entry.intake || '-'
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right text-sm">
+                        {editingId === entry.id ? (
+                          <input
+                            type="number"
+                            value={editFormData.exercise}
+                            onChange={(e) => setEditFormData({ ...editFormData, exercise: e.target.value })}
+                            className="w-20 bg-dark-card border border-dark-border rounded px-2 py-1 text-right focus:outline-none focus:border-green-500"
+                          />
+                        ) : (
+                          entry.exercise || '-'
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right text-sm">
+                        {editingId === entry.id ? (
+                          <input
+                            type="number"
+                            value={editFormData.protein}
+                            onChange={(e) => setEditFormData({ ...editFormData, protein: e.target.value })}
+                            className="w-20 bg-dark-card border border-dark-border rounded px-2 py-1 text-right focus:outline-none focus:border-green-500"
+                          />
+                        ) : (
+                          entry.protein ? (
+                            <span className="font-medium">{entry.protein}g</span>
+                          ) : (
+                            '-'
+                          )
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right text-sm font-medium">
+                        {editingId === entry.id ? (
+                          (Number(editFormData.intake) || 0) - (Number(editFormData.exercise) || 0)
+                        ) : (
+                          net
+                        )}
+                      </td>
                       <td className="px-6 py-4 text-right">
                         {entry.target ? (
                           <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${deficit > 0
-                              ? 'bg-green-500/20 text-green-500'
-                              : 'bg-red-500/20 text-red-500'
+                            ? 'bg-green-500/20 text-green-500'
+                            : 'bg-red-500/20 text-red-500'
                             }`}>
                             {deficit > 0 ? (
                               <>
@@ -380,12 +475,43 @@ export default function CalorieTracker() {
                         )}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => deleteCalorieEntry(entry.id)}
-                          className="p-1 text-red-500 hover:bg-red-500/10 rounded"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          {editingId === entry.id ? (
+                            <>
+                              <button
+                                onClick={handleSaveEdit}
+                                className="p-1 text-green-500 hover:bg-green-500/10 rounded"
+                                title="Save"
+                              >
+                                <Save className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={handleCancelEdit}
+                                className="p-1 text-gray-500 hover:bg-gray-500/10 rounded"
+                                title="Cancel"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => handleEdit(entry)}
+                                className="p-1 text-blue-500 hover:bg-blue-500/10 rounded"
+                                title="Edit"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => deleteCalorieEntry(entry.id)}
+                                className="p-1 text-red-500 hover:bg-red-500/10 rounded"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
