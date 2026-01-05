@@ -294,12 +294,35 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const addOrUpdateSteps = async (date: string, steps: number) => {
     if (!user) return;
 
-    // Check if a calorie entry exists for this date
-    const existingEntry = calories.find(c => c.day === date);
+    // Check DB directly instead of trusting local state
+    const { data: existing, error: selectError } = await supabase
+      .from('Calories')
+      .select('id')
+      .eq('day', date)
+      .eq('user_id', user.uid)
+      .maybeSingle();
 
-    if (existingEntry) {
+    if (selectError) {
+      console.error('Error checking for existing day:', selectError);
+      // Fallback to local state check if DB check fails (not ideal but better than nothing)
+      const localEntry = calories.find(c => c.day === date);
+      if (localEntry) {
+        await updateCalorieEntry(localEntry.id, { steps });
+      } else {
+        await addCalorieEntry({
+          day: date,
+          target: null,
+          exercise: null,
+          intake: null,
+          steps
+        });
+      }
+      return;
+    }
+
+    if (existing) {
       // Update existing entry
-      await updateCalorieEntry(existingEntry.id, { steps });
+      await updateCalorieEntry(existing.id, { steps });
     } else {
       // Create new entry with just steps
       await addCalorieEntry({
